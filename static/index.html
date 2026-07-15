@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>媒体解析台</title>
+    <script>
+      (() => {
+        const saved = localStorage.getItem("media-resolver-theme");
+        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = saved || (dark ? "dark" : "light");
+      })();
+    </script>
+    <link rel="stylesheet" href="/static/app.css">
+    <script defer src="/static/vendor/lucide.min.js"></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/" aria-label="媒体解析台首页">
+          <span class="brand-mark"><i data-lucide="scan-line"></i></span>
+          <span class="brand-copy">
+            <strong>媒体解析台</strong>
+            <span>Media Resolver</span>
+          </span>
+        </a>
+        <div class="header-actions">
+          <div class="platform-status" aria-label="支持的平台">
+            <span><i data-lucide="instagram"></i> Instagram</span>
+            <span><i data-lucide="music-2"></i> TikTok</span>
+          </div>
+          <button class="icon-button" id="themeToggle" type="button" aria-label="切换明暗主题" title="切换明暗主题">
+            <i data-lucide="sun-moon"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="parser-tool" aria-labelledby="pageTitle">
+        <div class="tool-heading">
+          <div>
+            <div class="eyebrow"><span class="live-dot"></span> LOCAL NODE · 2080</div>
+            <h1 id="pageTitle">链接解析</h1>
+          </div>
+          <div class="ready-state"><i data-lucide="radio"></i> READY</div>
+        </div>
+
+        <form id="parseForm" novalidate>
+          <label class="field-label" for="urlInput">媒体链接</label>
+          <div class="input-row">
+            <div class="url-field" id="urlField">
+              <span class="detected-platform" id="detectedPlatform">
+                <i data-lucide="link-2"></i>
+                <span>自动识别</span>
+              </span>
+              <input
+                id="urlInput"
+                name="url"
+                type="url"
+                inputmode="url"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="https://www.instagram.com/... 或 https://www.tiktok.com/..."
+                aria-describedby="formError"
+              >
+              <div class="field-actions">
+                <button class="field-icon" id="pasteButton" type="button" aria-label="粘贴链接" title="粘贴链接">
+                  <i data-lucide="clipboard-paste"></i>
+                </button>
+                <button class="field-icon" id="clearButton" type="button" aria-label="清空链接" title="清空链接" hidden>
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+            </div>
+            <button class="primary-button" id="submitButton" type="submit">
+              <i data-lucide="scan-search"></i>
+              <span>解析媒体</span>
+            </button>
+          </div>
+          <p class="form-error" id="formError" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <section class="loading-panel" id="loadingPanel" aria-live="polite" hidden>
+        <div class="loading-track"><span></span></div>
+        <div class="loading-copy">
+          <span>正在读取媒体信息</span>
+          <span class="mono" id="loadingPlatform">AUTO</span>
+        </div>
+      </section>
+
+      <section class="empty-state" id="emptyState" aria-label="等待解析">
+        <span class="empty-icon"><i data-lucide="gallery-horizontal-end"></i></span>
+        <strong>等待解析</strong>
+        <div class="empty-platforms">
+          <span>INSTAGRAM</span>
+          <span>TIKTOK</span>
+        </div>
+      </section>
+
+      <section class="result-tool" id="resultPanel" aria-live="polite" hidden>
+        <header class="result-header">
+          <div>
+            <span class="result-platform" id="resultPlatform">INSTAGRAM</span>
+            <h2 id="resultTitle">解析完成</h2>
+          </div>
+          <div class="result-status"><i data-lucide="circle-check"></i> READY</div>
+        </header>
+
+        <div class="result-layout">
+          <div class="media-column">
+            <div class="media-stage" id="mediaStage"></div>
+            <div class="thumbnail-rail" id="thumbnailRail" aria-label="媒体列表" hidden></div>
+            <div class="media-toolbar">
+              <div class="media-counter mono" id="mediaCounter">01 / 01</div>
+              <div class="toolbar-actions">
+                <button class="icon-button" id="copyButton" type="button" aria-label="复制媒体地址" title="复制媒体地址">
+                  <i data-lucide="copy"></i>
+                </button>
+                <a class="icon-button" id="openButton" href="#" target="_blank" rel="noopener" aria-label="新窗口打开" title="新窗口打开">
+                  <i data-lucide="external-link"></i>
+                </a>
+                <a class="command-button" id="downloadButton" href="#">
+                  <i data-lucide="download"></i>
+                  <span>下载</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <aside class="details-column">
+            <div class="creator-row">
+              <div class="creator-avatar" id="creatorAvatar"><i data-lucide="user-round"></i></div>
+              <div class="creator-copy">
+                <span>发布者</span>
+                <strong id="creatorName">未知</strong>
+              </div>
+              <a class="icon-button" id="sourceButton" href="#" target="_blank" rel="noopener" aria-label="打开原帖" title="打开原帖">
+                <i data-lucide="arrow-up-right"></i>
+              </a>
+            </div>
+
+            <div class="caption-block">
+              <span class="detail-label">内容</span>
+              <p id="captionText">—</p>
+            </div>
+
+            <dl class="metadata-grid">
+              <div>
+                <dt>类型</dt>
+                <dd id="mediaType">—</dd>
+              </div>
+              <div>
+                <dt>画质</dt>
+                <dd id="mediaQuality">—</dd>
+              </div>
+              <div>
+                <dt>尺寸</dt>
+                <dd id="mediaSize">—</dd>
+              </div>
+              <div>
+                <dt>时长</dt>
+                <dd id="mediaDuration">—</dd>
+              </div>
+            </dl>
+
+            <div class="stats-row" id="statsRow" hidden></div>
+            <div class="expiry-row">
+              <i data-lucide="timer-reset"></i>
+              <span>临时媒体会话</span>
+              <strong class="mono" id="expiryValue">15:00</strong>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>MEDIA RESOLVER</span>
+      <span class="footer-line"></span>
+      <span>127.0.0.1:21359</span>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+      <i data-lucide="check"></i>
+      <span id="toastText"></span>
+    </div>
+  </body>
+</html>

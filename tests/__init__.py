@@ -1,0 +1,1 @@
+"""Media resolver test suite."""

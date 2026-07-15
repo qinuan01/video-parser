@@ -1,2 +1,5 @@
-curl_cffi
-loguru
+curl_cffi>=0.7.1
+fastapi>=0.115
+loguru>=0.7
+pydantic>=2
+uvicorn>=0.30
