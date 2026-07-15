@@ -20,14 +20,30 @@
     }
   }
 
+  function extractFirstHttpUrl(value) {
+    const input = String(value || "").trim();
+    const match = input.match(/https?:\/\/[^\s<>"']+/i);
+    if (match) {
+      return match[0].replace(/[.,!?;:)\]}，。！？；：、）】》」』]+$/u, "");
+    }
+    if (!input || /\s/.test(input)) return null;
+    return input.includes("://") ? input : `https://${input.replace(/^\/+/, "")}`;
+  }
+
+  function matchesDomain(host, domain) {
+    return host === domain || host.endsWith(`.${domain}`);
+  }
+
   function detectPlatform(value) {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
+    const url = extractFirstHttpUrl(value);
+    if (!url) return null;
     try {
-      const parsed = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+      const parsed = new URL(url);
       const host = parsed.hostname.toLowerCase();
-      if (host === "instagram.com" || host.endsWith(".instagram.com")) return "instagram";
-      if (host === "tiktok.com" || host.endsWith(".tiktok.com")) return "tiktok";
+      if (matchesDomain(host, "instagram.com")) return "instagram";
+      if (matchesDomain(host, "tiktok.com")) return "tiktok";
+      if (matchesDomain(host, "douyin.com") || matchesDomain(host, "iesdouyin.com")) return "douyin";
+      if (matchesDomain(host, "bilibili.com") || matchesDomain(host, "b23.tv")) return "bilibili";
     } catch (_) {
       return null;
     }
@@ -46,6 +62,12 @@
     } else if (platform === "tiktok") {
       icon.setAttribute("data-lucide", "music-2");
       label.textContent = "TikTok";
+    } else if (platform === "douyin") {
+      icon.setAttribute("data-lucide", "music");
+      label.textContent = "Douyin";
+    } else if (platform === "bilibili") {
+      icon.setAttribute("data-lucide", "tv");
+      label.textContent = "Bilibili";
     } else {
       icon.setAttribute("data-lucide", "link-2");
       label.textContent = "自动识别";
@@ -241,7 +263,13 @@
     elements.resultPanel.hidden = false;
     elements.resultPlatform.dataset.platform = result.platform;
     elements.resultPlatform.textContent = result.platform.toUpperCase();
-    elements.resultTitle.textContent = result.platform === "tiktok" ? "TikTok 媒体" : "Instagram 媒体";
+    const platformTitles = {
+      instagram: "Instagram 媒体",
+      tiktok: "TikTok 媒体",
+      douyin: "Douyin 媒体",
+      bilibili: "Bilibili 媒体",
+    };
+    elements.resultTitle.textContent = platformTitles[result.platform] || "解析完成";
     elements.creatorName.textContent = result.author_name || (result.author ? `@${result.author}` : "未知发布者");
     elements.captionText.textContent = result.caption || "无文字内容";
     elements.sourceButton.href = result.original_url;
@@ -291,15 +319,16 @@
   async function handleSubmit(event) {
     event.preventDefault();
     clearError();
-    const url = elements.urlInput.value.trim();
-    const platform = detectPlatform(url);
-    if (!url) {
-      showError("请输入媒体链接");
+    const input = elements.urlInput.value.trim();
+    const url = extractFirstHttpUrl(input);
+    const platform = detectPlatform(input);
+    if (!input) {
+      showError("请输入媒体链接或分享文案");
       elements.urlInput.focus();
       return;
     }
     if (!platform) {
-      showError("仅支持 Instagram 和 TikTok 链接");
+      showError("请输入 Instagram、TikTok、Douyin 或 Bilibili 链接");
       elements.urlInput.focus();
       return;
     }

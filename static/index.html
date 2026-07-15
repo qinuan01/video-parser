@@ -28,8 +28,10 @@
         </a>
         <div class="header-actions">
           <div class="platform-status" aria-label="支持的平台">
-            <span><i data-lucide="instagram"></i> Instagram</span>
-            <span><i data-lucide="music-2"></i> TikTok</span>
+            <span class="platform-instagram"><i data-lucide="instagram"></i> Instagram</span>
+            <span class="platform-tiktok"><i data-lucide="music-2"></i> TikTok</span>
+            <span class="platform-douyin"><i data-lucide="music"></i> Douyin</span>
+            <span class="platform-bilibili"><i data-lucide="tv"></i> Bilibili</span>
           </div>
           <button class="icon-button" id="themeToggle" type="button" aria-label="切换明暗主题" title="切换明暗主题">
             <i data-lucide="sun-moon"></i>
@@ -49,7 +51,7 @@
         </div>
 
         <form id="parseForm" novalidate>
-          <label class="field-label" for="urlInput">媒体链接</label>
+          <label class="field-label" for="urlInput">媒体链接或分享文案</label>
           <div class="input-row">
             <div class="url-field" id="urlField">
               <span class="detected-platform" id="detectedPlatform">
@@ -59,11 +61,11 @@
               <input
                 id="urlInput"
                 name="url"
-                type="url"
-                inputmode="url"
+                type="text"
+                inputmode="text"
                 autocomplete="off"
                 spellcheck="false"
-                placeholder="https://www.instagram.com/... 或 https://www.tiktok.com/..."
+                placeholder="粘贴 Instagram、TikTok、Douyin、Bilibili 链接或分享文案"
                 aria-describedby="formError"
               >
               <div class="field-actions">
@@ -98,6 +100,8 @@
         <div class="empty-platforms">
           <span>INSTAGRAM</span>
           <span>TIKTOK</span>
+          <span>DOUYIN</span>
+          <span>BILIBILI</span>
         </div>
       </section>
 
@@ -179,9 +183,9 @@
     </main>
 
     <footer class="site-footer">
-      <span>MEDIA RESOLVER</span>
+      <span>media resolver</span>
       <span class="footer-line"></span>
-      <span>127.0.0.1:21359</span>
+      <span>made by qinuan</span>
     </footer>
 
     <div class="toast" id="toast" role="status" aria-live="polite" hidden>

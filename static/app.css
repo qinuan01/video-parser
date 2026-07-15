@@ -17,6 +17,8 @@
   --danger-soft: #f8e4e4;
   --instagram: #ca4d6f;
   --tiktok: #187b82;
+  --douyin: #c43f67;
+  --bilibili: #0788b4;
   --grid: rgba(107, 120, 134, 0.11);
   --shadow: 0 1px 2px rgba(20, 30, 42, 0.05), 0 18px 36px -28px rgba(20, 30, 42, 0.38);
   --radius: 8px;
@@ -42,6 +44,8 @@
   --danger-soft: #402426;
   --instagram: #ed7795;
   --tiktok: #5bc1c7;
+  --douyin: #f07096;
+  --bilibili: #4fc3e8;
   --grid: rgba(145, 155, 165, 0.07);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 20px 42px -30px rgba(0, 0, 0, 0.8);
 }
@@ -203,12 +207,20 @@ svg {
   border-left: 1px solid var(--border);
 }
 
-.platform-status span:first-child svg {
+.platform-status .platform-instagram svg {
   color: var(--instagram);
 }
 
-.platform-status span:last-child svg {
+.platform-status .platform-tiktok svg {
   color: var(--tiktok);
+}
+
+.platform-status .platform-douyin svg {
+  color: var(--douyin);
+}
+
+.platform-status .platform-bilibili svg {
+  color: var(--bilibili);
 }
 
 .icon-button,
@@ -370,6 +382,14 @@ svg {
 
 .detected-platform[data-platform="tiktok"] {
   color: var(--tiktok);
+}
+
+.detected-platform[data-platform="douyin"] {
+  color: var(--douyin);
+}
+
+.detected-platform[data-platform="bilibili"] {
+  color: var(--bilibili);
 }
 
 .url-field input {
@@ -558,6 +578,14 @@ svg {
 
 .result-platform[data-platform="tiktok"] {
   color: var(--tiktok);
+}
+
+.result-platform[data-platform="douyin"] {
+  color: var(--douyin);
+}
+
+.result-platform[data-platform="bilibili"] {
+  color: var(--bilibili);
 }
 
 .result-header h2 {

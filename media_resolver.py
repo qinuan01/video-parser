@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlparse
 
+import bilibili_extractor as bilibili
+import douyin_extractor as douyin
 import instagram_extractor as instagram
 from tiktok_extractor import (
     TIKTOK_USER_AGENT,
@@ -28,6 +31,10 @@ class MediaUnavailable(ResolverError):
 
 class UpstreamMediaError(ResolverError):
     pass
+
+
+_HTTP_URL_RE = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
+_TRAILING_URL_PUNCTUATION = ".,;!?，。；！？、）)]}》】」』"
 
 
 @dataclass
@@ -80,22 +87,32 @@ def _normalize_input_url(url: str) -> str:
     value = url.strip()
     if not value:
         raise InvalidMediaURL("链接不能为空")
-    if "://" not in value:
-        value = f"https://{value.lstrip('/')}"
-    parsed = urlparse(value)
+    match = _HTTP_URL_RE.search(value)
+    candidate = match.group(0).rstrip(_TRAILING_URL_PUNCTUATION) if match else value
+    if "://" not in candidate:
+        candidate = f"https://{candidate.lstrip('/')}"
+    parsed = urlparse(candidate)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
         raise InvalidMediaURL("链接格式无效")
-    return value
+    return candidate
+
+
+def _host_matches(host: str, suffix: str) -> bool:
+    return host == suffix or host.endswith(f".{suffix}")
 
 
 def detect_platform(url: str) -> str:
     value = _normalize_input_url(url)
     host = (urlparse(value).hostname or "").lower()
-    if host == "instagram.com" or host.endswith(".instagram.com"):
+    if _host_matches(host, "instagram.com"):
         return "instagram"
-    if host == "tiktok.com" or host.endswith(".tiktok.com"):
+    if _host_matches(host, "tiktok.com"):
         return "tiktok"
-    raise InvalidMediaURL("仅支持 Instagram 和 TikTok 链接")
+    if _host_matches(host, "douyin.com") or _host_matches(host, "iesdouyin.com"):
+        return "douyin"
+    if _host_matches(host, "bilibili.com") or _host_matches(host, "b23.tv"):
+        return "bilibili"
+    raise InvalidMediaURL("仅支持 Instagram、TikTok、抖音和哔哩哔哩链接")
 
 
 def _cookie_dict(session: Any) -> dict[str, str]:
@@ -192,6 +209,90 @@ def _resolve_tiktok(url: str, proxy: str | None, timeout: float) -> ResolvedResu
     )
 
 
+def _resolve_douyin(url: str, proxy: str | None, timeout: float) -> ResolvedResult:
+    try:
+        extractor = douyin.DouyinExtractor(url, proxy=proxy, timeout=timeout)
+        result = extractor.extract()
+    except douyin.DouyinURLInvalid as exc:
+        raise InvalidMediaURL(str(exc)) from exc
+    except douyin.DouyinMediaNotFound as exc:
+        raise MediaUnavailable(str(exc)) from exc
+    except douyin.DouyinError as exc:
+        raise UpstreamMediaError(str(exc)) from exc
+
+    return ResolvedResult(
+        platform="douyin",
+        media_id=result.media_id,
+        original_url=result.real_url,
+        author=result.author,
+        author_name=result.author_name,
+        author_avatar=result.author_avatar,
+        caption=result.caption,
+        thumbnail_url=result.cover_url,
+        media=[
+            ResolvedItem(
+                kind=item.kind,
+                url=item.url,
+                width=item.width,
+                height=item.height,
+                duration=item.duration,
+                format=item.format,
+                quality=item.quality,
+            )
+            for item in result.media
+        ],
+        stats=result.stats,
+        source=result.source,
+        context=RequestContext(
+            referer=extractor.referer,
+            user_agent=douyin.USER_AGENT,
+            cookies=extractor.cookies(),
+        ),
+    )
+
+
+def _resolve_bilibili(url: str, proxy: str | None, timeout: float) -> ResolvedResult:
+    try:
+        extractor = bilibili.BilibiliExtractor(url, proxy=proxy, timeout=timeout)
+        result = extractor.extract()
+    except bilibili.BilibiliURLInvalid as exc:
+        raise InvalidMediaURL(str(exc)) from exc
+    except bilibili.BilibiliMediaNotFound as exc:
+        raise MediaUnavailable(str(exc)) from exc
+    except bilibili.BilibiliError as exc:
+        raise UpstreamMediaError(str(exc)) from exc
+
+    return ResolvedResult(
+        platform="bilibili",
+        media_id=result.media_id,
+        original_url=result.original_url,
+        author=result.author,
+        author_name=result.author_name,
+        author_avatar=result.author_avatar,
+        caption=result.caption,
+        thumbnail_url=result.cover_url,
+        media=[
+            ResolvedItem(
+                kind=item.kind,
+                url=item.url,
+                width=item.width,
+                height=item.height,
+                duration=item.duration,
+                format=item.format,
+                quality=item.quality,
+            )
+            for item in result.media
+        ],
+        stats=result.stats,
+        source=result.source,
+        context=RequestContext(
+            referer=extractor.referer,
+            user_agent=bilibili.BILIBILI_USER_AGENT,
+            cookies=extractor.cookies(),
+        ),
+    )
+
+
 def resolve_media(
     url: str,
     proxy: str | None = instagram.DEFAULT_PROXY,
@@ -201,7 +302,11 @@ def resolve_media(
     platform = detect_platform(normalized)
     if platform == "instagram":
         return _resolve_instagram(normalized, proxy, timeout)
-    return _resolve_tiktok(normalized, proxy, timeout)
+    if platform == "tiktok":
+        return _resolve_tiktok(normalized, proxy, timeout)
+    if platform == "douyin":
+        return _resolve_douyin(normalized, proxy, timeout)
+    return _resolve_bilibili(normalized, proxy, timeout)
 
 
 __all__ = [

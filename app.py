@@ -9,7 +9,12 @@ from urllib.parse import urlparse
 
 from curl_cffi import requests as curl_requests
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    JSONResponse,
+    Response,
+    StreamingResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -276,8 +281,12 @@ def proxy_media(token: str, request: Request, download: bool = False) -> Respons
 
     final_url = str(upstream.url)
     if not is_allowed_media_url(final_url):
+        final_host = urlparse(final_url).hostname or "unknown"
         _close_upstream(upstream, session)
-        raise HTTPException(status_code=502, detail="媒体重定向地址无效")
+        raise HTTPException(
+            status_code=502,
+            detail=f"媒体重定向地址无效: {final_host}",
+        )
     if upstream.status_code not in {200, 206}:
         status = upstream.status_code
         _close_upstream(upstream, session)

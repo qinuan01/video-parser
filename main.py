@@ -17,9 +17,11 @@ DEFAULT_PROXY = os.getenv(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Extract public Instagram and TikTok media URLs."
+        description="Extract public Instagram, TikTok, Douyin, and Bilibili media URLs."
     )
-    parser.add_argument("url", nargs="?", help="Instagram or TikTok media URL")
+    parser.add_argument(
+        "url", nargs="?", help="Media URL or a complete Douyin share message"
+    )
     parser.add_argument(
         "--proxy",
         default=DEFAULT_PROXY,
@@ -34,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    url = args.url or input("Media URL: ").strip()
+    url = args.url or input("Media URL or Douyin share message: ").strip()
     proxy = None if args.no_proxy else args.proxy
     try:
         result = resolve_media(url, proxy=proxy, timeout=args.timeout)

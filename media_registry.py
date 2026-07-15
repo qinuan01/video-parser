@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from media_resolver import RequestContext
 
 
+ALLOWED_MEDIA_HOSTS = ("aweme.snssdk.com",)
 ALLOWED_MEDIA_HOST_SUFFIXES = (
     ".cdninstagram.com",
     ".fbcdn.net",
@@ -26,6 +27,12 @@ ALLOWED_MEDIA_HOST_SUFFIXES = (
     ".byteoversea.net",
     ".ibyteimg.com",
     ".muscdn.com",
+    ".douyin.com",
+    ".douyinpic.com",
+    ".douyinvod.com",
+    ".zjcdn.com",
+    ".bilivideo.com",
+    ".hdslb.com",
 )
 
 
@@ -34,7 +41,9 @@ def is_allowed_media_url(url: str) -> bool:
     host = (parsed.hostname or "").lower()
     if parsed.scheme != "https" or not host:
         return False
-    return any(host.endswith(suffix) for suffix in ALLOWED_MEDIA_HOST_SUFFIXES)
+    return host in ALLOWED_MEDIA_HOSTS or any(
+        host.endswith(suffix) for suffix in ALLOWED_MEDIA_HOST_SUFFIXES
+    )
 
 
 def safe_filename(value: str, fallback: str) -> str:
