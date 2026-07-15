@@ -33,6 +33,7 @@ ALLOWED_MEDIA_HOST_SUFFIXES = (
     ".zjcdn.com",
     ".bilivideo.com",
     ".hdslb.com",
+    ".akamaized.net",
 )
 
 
