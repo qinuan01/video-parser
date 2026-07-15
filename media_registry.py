@@ -83,7 +83,7 @@ class MediaRegistry:
         context: RequestContext,
     ) -> MediaSource:
         if not is_allowed_media_url(url):
-            raise ValueError("上游媒体地址不在允许范围内")
+            raise ValueError(f"上游媒体地址不在允许范围内: {url}")
         token = secrets.token_urlsafe(24)
         source = MediaSource(
             token=token,
