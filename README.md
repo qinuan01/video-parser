@@ -1,5 +1,6 @@
 # 媒体解析台
-![Uploading QQ_1786948278038.png…]()
+<img width="1591" height="780" alt="QQ_1786948278038" src="https://github.com/user-attachments/assets/0f0c4523-27c1-40bf-9374-f59080dbad3c" />
+
 
 本地 Instagram / TikTok / Douyin / Bilibili 媒体解析工具，默认通过 `http://127.0.0.1:2080` 请求上游。抖音支持直接粘贴完整分享文案。
 
